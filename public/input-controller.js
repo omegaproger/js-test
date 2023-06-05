@@ -13,13 +13,26 @@ class InputController{
         if (!this.enabled || !this.focused || this.isKeyPressed(e.keyCode)){
             return;
         }
+        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
+            bubbles:true,
+            detail: { target:this.target,action:Object.keys(this.actions).forEach((key)=>{
+                    return this.actions[key].keys.reduce((a,current)=>{
+                        return a || this.pressedKeys.includes(current)
+                    },false) && key
+                })}
+        }));
         this.pressedKeys.push(e.keyCode);
+
     }
 
     keyUpEvent = (e)=>{
         if (!this.enabled || !this.focused || !this.isKeyPressed(e.keyCode)){
             return;
         }
+        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
+            bubbles:true,
+            detail: { target:this.target}
+        }));
         this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
     };
 
@@ -52,12 +65,12 @@ class InputController{
     attach(target,dontEnable = false){
         this.target = target;
         this.enabled = !dontEnable;
-        this.target.addEventListener('keydown',this.keyDownEvent)
-        this.target.addEventListener('keyup',this.keyUpEvent)
+        document.addEventListener('keydown',this.keyDownEvent)
+        document.addEventListener('keyup',this.keyUpEvent)
     }
     detach(){
-        this.target.removeEventListener('keydown',this.keyDownEvent);
-        this.target.removeEventListener('keyup',this.keyUpEvent);
+        document.removeEventListener('keydown',this.keyDownEvent);
+        document.removeEventListener('keyup',this.keyUpEvent);
         this.target = null;
     }
 

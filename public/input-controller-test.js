@@ -13,7 +13,10 @@ const block = document.querySelector('.block');
 
 let test = new InputController(actionToBind,block)
 
-document.addEventListener('keydown',(e)=>{
-    console.log(test.isActionActive('left'),'ACTIVE');
+block.addEventListener(InputController.ACTION_ACTIVATED,({detail})=>{
+    console.log(console.log(detail));
+})
+block.addEventListener(InputController.ACTION_DEACTIVATED,({detail})=>{
+    console.log(console.log(detail));
 })
 
