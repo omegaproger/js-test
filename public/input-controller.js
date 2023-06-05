@@ -9,18 +9,25 @@ class InputController{
     target = null;
     pressedKeys = [];
 
+    triggerEvent = (name,keyCode) => {
+        const action = Object.keys(this.actions).find((key)=>
+            this.actions[key].keys.includes(keyCode)
+        )
+        if(!action){
+            return
+        }
+        this.target.dispatchEvent(new CustomEvent(name, {
+            bubbles:true,
+            detail: {
+                target: this.target, action
+            }}));
+    }
+
     keyDownEvent = (e)=>{
         if (!this.enabled || !this.focused || this.isKeyPressed(e.keyCode)){
             return;
         }
-        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_ACTIVATED, {
-            bubbles:true,
-            detail: { target:this.target,action:Object.keys(this.actions).forEach((key)=>{
-                    return this.actions[key].keys.reduce((a,current)=>{
-                        return a || this.pressedKeys.includes(current)
-                    },false) && key
-                })}
-        }));
+        this.triggerEvent(InputController.ACTION_ACTIVATED,e.keyCode)
         this.pressedKeys.push(e.keyCode);
 
     }
@@ -29,10 +36,7 @@ class InputController{
         if (!this.enabled || !this.focused || !this.isKeyPressed(e.keyCode)){
             return;
         }
-        this.target.dispatchEvent(new CustomEvent(InputController.ACTION_DEACTIVATED, {
-            bubbles:true,
-            detail: { target:this.target}
-        }));
+        this.triggerEvent(InputController.ACTION_DEACTIVATED,e.keyCode)
         this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
     };
 
