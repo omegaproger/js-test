@@ -10,16 +10,18 @@ class InputController{
     pressedKeys = [];
 
     triggerEvent = (name,keyCode) => {
-        const action = Object.keys(this.actions).find((key)=>
-            this.actions[key].keys.includes(keyCode)
-        )
-        if(!action){
-            return
-        }
+        //Воторой вариант
+
+        // const action = Object.keys(this.actions).find((key)=>
+        //     this.actions[key].keys.includes(keyCode)
+        // )
+        // if(!action){
+        //     return
+        // }
         this.target.dispatchEvent(new CustomEvent(name, {
             bubbles:true,
             detail: {
-                target: this.target, action
+                target: this.target
             }}));
     }
 
@@ -27,17 +29,17 @@ class InputController{
         if (!this.enabled || !this.focused || this.isKeyPressed(e.keyCode)){
             return;
         }
-        this.triggerEvent(InputController.ACTION_ACTIVATED,e.keyCode)
         this.pressedKeys.push(e.keyCode);
-
+        this.triggerEvent(InputController.ACTION_ACTIVATED,e.keyCode)
     }
 
     keyUpEvent = (e)=>{
         if (!this.enabled || !this.focused || !this.isKeyPressed(e.keyCode)){
             return;
         }
-        this.triggerEvent(InputController.ACTION_DEACTIVATED,e.keyCode)
         this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
+        this.triggerEvent(InputController.ACTION_DEACTIVATED,e.keyCode)
+
     };
 
     constructor(actionsToBind,target ) {
@@ -79,7 +81,10 @@ class InputController{
     }
 
     isActionActive(action){
-        if(!this.actions[action].enabled){
+      if(!this.actions[action]){
+          return false;
+      }
+      if(!this.actions[action].enabled){
           return false;
       }
       return this.actions[action].keys.reduce((a,current)=>{

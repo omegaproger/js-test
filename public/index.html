@@ -5,9 +5,17 @@
     <title>Title</title>
 </head>
 <body>
-    <div class="main" style="background-color: bisque;width: 100vw;height: 500px;display: flex;justify-content:center;align-items: center">
-        <div class="block" style="position:relative;background-color: black;width: 150px;height: 150px;transform:translate(50%,0);" ></div>
+    <div class="main" style="position:relative;background-color: bisque;width: 100%;height: 500px">
+        <div class="block" style="position:absolute;background-color: black;width: 150px;height: 150px;transform:translate(-50%,50%);left: 50%;transition: left 0.3s,background-color 0.3s" ></div>
+        <div class="buttons" style="margin: 0 auto">
+            <button id="attach">attach</button>
+            <button id="detach">detach</button>
+            <button id="controller-enable">controller-active</button>
+            <button id="controller-disable">controller-disable</button>
+            <button id="add-jump">add-jump</button>
+        </div>
     </div>
+
     <script src="../src/index.js"></script>
     <script src="input-controller.js"></script>
     <script src="input-controller-test.js"></script>
