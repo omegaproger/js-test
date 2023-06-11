@@ -6,7 +6,7 @@ const actionToBind = {
     "right": {
         keys: [39,68],
         enabled: true
-    },
+    }
 }
 
 const block = document.querySelector('.block');

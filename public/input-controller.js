@@ -4,12 +4,16 @@ class InputController{
     static ACTION_ACTIVATED='input-controller:action-activated';
     static ACTION_DEACTIVATED = "input-controller:action-deactivated";
 
-
+    activated = [];
     actions = {};
     target = null;
-    pressedKeys = [];
+    types = [];
+    plugins = []
 
     triggerEvent = (name,keyCode) => {
+        if(!this.enabled){
+            return;
+        }
         //Воторой вариант
 
         // const action = Object.keys(this.actions).find((key)=>
@@ -25,23 +29,6 @@ class InputController{
             }}));
     }
 
-    keyDownEvent = (e)=>{
-        if (!this.enabled || !this.focused || this.isKeyPressed(e.keyCode)){
-            return;
-        }
-        this.pressedKeys.push(e.keyCode);
-        this.triggerEvent(InputController.ACTION_ACTIVATED,e.keyCode)
-    }
-
-    keyUpEvent = (e)=>{
-        if (!this.enabled || !this.focused || !this.isKeyPressed(e.keyCode)){
-            return;
-        }
-        this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
-        this.triggerEvent(InputController.ACTION_DEACTIVATED,e.keyCode)
-
-    };
-
     constructor(actionsToBind,target ) {
         window.addEventListener("blur", ()=>{
             this.focused = false;
@@ -51,14 +38,31 @@ class InputController{
         });
 
         this.bindActions(actionsToBind)
+        this.bindTypes()
         this.attach(target)
+        this.plugins = [
+            new keyboard(this)
+        ]
+
     }
 
     bindActions(actionsToBind){
         Object.keys(actionsToBind).forEach((key)=>{
-            this.actions[key] = {enabled:true,...actionsToBind[key]}
+            this.actions[key] = {...actionsToBind[key],enabled:true}
         })
     }
+
+
+    bindTypes(){
+        Object.keys(this.actions).forEach((k)=>{
+            Object.keys(this.actions[k]).forEach((key,index)=>{
+                if (index === 0){
+                    this.types.push(key)
+                }
+            })
+        })
+    }
+
 
     enableAction(actionName ){
         this.actions[actionName].enabled = true;
@@ -71,12 +75,14 @@ class InputController{
     attach(target,dontEnable = false){
         this.target = target;
         this.enabled = !dontEnable;
-        document.addEventListener('keydown',this.keyDownEvent)
-        document.addEventListener('keyup',this.keyUpEvent)
+        this.plugins.forEach((plugin)=>{
+            plugin.enabled = true
+        })
     }
     detach(){
-        document.removeEventListener('keydown',this.keyDownEvent);
-        document.removeEventListener('keyup',this.keyUpEvent);
+        this.plugins.forEach((plugin)=>{
+            plugin.enabled = false
+        })
         this.target = null;
     }
 
@@ -87,11 +93,70 @@ class InputController{
       if(!this.actions[action].enabled){
           return false;
       }
-      return this.actions[action].keys.reduce((a,current)=>{
-          return a || this.pressedKeys.includes(current);
-      },false)
-
+      return this.activated.includes(action);
     }
+}
+
+
+class keyboard{
+
+    controller = null;
+    target = null;
+    enabled = false;
+    pressedKeys = [];
+
+    keyDownEvent = (e)=>{
+        if (!this.enabled && !this.isKeyPressed(e.keyCode)){
+            return;
+        }
+        const action = Object.keys(this.controller.actions).find((key)=>
+            this.controller.actions[key].keys.includes(e.keyCode)
+        )
+        this.controller.activated.push(action)
+        this.pressedKeys.push(e.keyCode);
+        this.controller.triggerEvent(InputController.ACTION_ACTIVATED)
+    }
+
+    keyUpEvent = (e)=>{
+        if (!this.enabled  && !this.isKeyPressed(e.keyCode)){
+            return;
+        }
+        const action = Object.keys(this.controller.actions).find((key)=>
+            this.controller.actions[key].keys.includes(e.keyCode)
+        )
+        this.controller.activated = this.controller.activated.filter((item)=>item !== action)
+        this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
+        this.controller.triggerEvent(InputController.ACTION_DEACTIVATED)
+
+    };
+    constructor(controller) {
+        this.controller = controller
+        this.isKeyboard()
+        this.enabled &&  this.attach()
+    }
+
+
+    isKeyboard(){
+        if(!this.controller.types){
+            return
+        }
+        if (this.controller.types.includes('keys')){
+           this.enabled = true
+
+        }
+    }
+
+    attach(){
+        if (!this.enabled){
+            return;
+        }
+
+        if (this.enabled){
+            document.addEventListener('keydown',this.keyDownEvent);
+            document.addEventListener('keyup',this.keyUpEvent);
+        }
+    }
+
 
     isKeyPressed(keyCode){
         return this.pressedKeys.includes(keyCode);
