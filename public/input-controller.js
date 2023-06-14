@@ -87,10 +87,9 @@ class InputController{
     }
     detach(){
         this.plugins.forEach((plugin)=>{
-            plugin.enabled = false
+            plugin.detach();
         })
         this.target = null;
-        this.enabled = false;
     }
 
     isActionActive(action){
@@ -163,6 +162,12 @@ class Keyboard{
             document.addEventListener('keydown',this.keyDownEvent);
             document.addEventListener('keyup',this.keyUpEvent);
         }
+    }
+
+    detach(){
+        this.enabled = false;
+        document.addEventListener('keydown',this.keyDownEvent);
+        document.addEventListener('keyup',this.keyUpEvent);
     }
 
 
