@@ -30,33 +30,39 @@ class InputController{
     }
 
     constructor(actionsToBind,target ) {
+
         window.addEventListener("blur", ()=>{
             this.focused = false;
         });
         window.addEventListener("focus", ()=>{
             this.focused = true;
         });
-
         this.bindActions(actionsToBind)
         this.bindTypes()
         this.attach(target)
-        this.plugins = [
-            new keyboard(this)
-        ]
+        this.bindPlugins()
+
+        this.plugins.forEach((plugin)=>{
+            return plugin;
+        })
 
     }
 
     bindActions(actionsToBind){
         Object.keys(actionsToBind).forEach((key)=>{
-            this.actions[key] = {...actionsToBind[key],enabled:true}
+            this.actions[key] = {enabled:true,...actionsToBind[key]}
         })
+    }
+
+    bindPlugins(plugins=[]){
+        this.plugins = [new Keyboard(this),...plugins]
     }
 
 
     bindTypes(){
         Object.keys(this.actions).forEach((k)=>{
             Object.keys(this.actions[k]).forEach((key,index)=>{
-                if (index === 0){
+                if (key !== 'enabled'){
                     this.types.push(key)
                 }
             })
@@ -84,6 +90,7 @@ class InputController{
             plugin.enabled = false
         })
         this.target = null;
+        this.enabled = false;
     }
 
     isActionActive(action){
@@ -98,7 +105,7 @@ class InputController{
 }
 
 
-class keyboard{
+class Keyboard{
 
     controller = null;
     target = null;
@@ -137,6 +144,7 @@ class keyboard{
 
 
     isKeyboard(){
+
         if(!this.controller.types){
             return
         }
