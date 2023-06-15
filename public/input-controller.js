@@ -82,7 +82,7 @@ class InputController{
         this.target = target;
         this.enabled = !dontEnable;
         this.plugins.forEach((plugin)=>{
-            plugin.enabled = true
+            plugin.attach();
         })
     }
     detach(){
@@ -138,7 +138,7 @@ class Keyboard{
     constructor(controller) {
         this.controller = controller
         this.isKeyboard()
-        this.enabled &&  this.attach()
+        this.attach()
     }
 
 
@@ -154,20 +154,13 @@ class Keyboard{
     }
 
     attach(){
-        if (!this.enabled){
-            return;
-        }
-
-        if (this.enabled){
-            document.addEventListener('keydown',this.keyDownEvent);
-            document.addEventListener('keyup',this.keyUpEvent);
-        }
+        document.addEventListener('keydown',this.keyDownEvent);
+        document.addEventListener('keyup',this.keyUpEvent);
     }
 
     detach(){
-        this.enabled = false;
-        document.addEventListener('keydown',this.keyDownEvent);
-        document.addEventListener('keyup',this.keyUpEvent);
+        document.removeEventListener('keydown',this.keyDownEvent);
+        document.removeEventListener('keyup',this.keyUpEvent);
     }
 
 
