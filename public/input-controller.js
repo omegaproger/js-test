@@ -70,6 +70,7 @@ class InputController{
     }
 
 
+
     enableAction(actionName ){
         this.actions[actionName].enabled = true;
     }
@@ -115,11 +116,17 @@ class Keyboard{
         if (!this.enabled && !this.isKeyPressed(e.keyCode)){
             return;
         }
+        if (this.pressedKeys.includes(e.keyCode)){
+            return;
+        }
         const action = Object.keys(this.controller.actions).find((key)=>
             this.controller.actions[key].keys.includes(e.keyCode)
         )
-        this.controller.activated.push(action)
+        if (!this.controller.activated.includes(action) && this.controller.activated.length){
+            return;
+        }
         this.pressedKeys.push(e.keyCode);
+        this.controller.activated.push(action);
         this.controller.triggerEvent(InputController.ACTION_ACTIVATED)
     }
 
@@ -130,10 +137,14 @@ class Keyboard{
         const action = Object.keys(this.controller.actions).find((key)=>
             this.controller.actions[key].keys.includes(e.keyCode)
         )
-        this.controller.activated = this.controller.activated.filter((item)=>item !== action)
         this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
-        this.controller.triggerEvent(InputController.ACTION_DEACTIVATED)
-
+        let myIndex = this.controller.activated.indexOf(action);
+        if(myIndex !== -1) {
+            this.controller.activated.splice(myIndex,1);
+        }
+        if (!this.controller.activated.includes(action)){
+            this.controller.triggerEvent(InputController.ACTION_DEACTIVATED);
+        }
     };
     constructor(controller) {
         this.controller = controller

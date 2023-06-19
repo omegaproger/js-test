@@ -41,6 +41,8 @@ addJump.onclick = () => {
 ///Первый вариант
 
 
+
+
 block.addEventListener(InputController.ACTION_ACTIVATED,({detail})=>{
     if (test.isActionActive('right')) {
         detail.target.style.left = '80%';
