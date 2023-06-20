@@ -1,36 +1,21 @@
 class InputController{
-    enabled = true;
-    focused = true;
     static ACTION_ACTIVATED='input-controller:action-activated';
+
     static ACTION_DEACTIVATED = "input-controller:action-deactivated";
 
-    activated = [];
+    enabled = true;
+
+    focused = true;
+
     actions = {};
+
     target = null;
+
     types = [];
+
     plugins = []
 
-    triggerEvent = (name,keyCode) => {
-        if(!this.enabled){
-            return;
-        }
-        //Воторой вариант
-
-        // const action = Object.keys(this.actions).find((key)=>
-        //     this.actions[key].keys.includes(keyCode)
-        // )
-        // if(!action){
-        //     return
-        // }
-        this.target.dispatchEvent(new CustomEvent(name, {
-            bubbles:true,
-            detail: {
-                target: this.target
-            }}));
-    }
-
     constructor(actionsToBind,target ) {
-
         window.addEventListener("blur", ()=>{
             this.focused = false;
         });
@@ -46,6 +31,17 @@ class InputController{
             return plugin;
         })
 
+    }
+
+    triggerEvent = (name,keyCode) => {
+        if(!this.enabled){
+            return;
+        }
+        this.target.dispatchEvent(new CustomEvent(name, {
+            bubbles:true,
+            detail: {
+                target: this.target
+            }}));
     }
 
     bindActions(actionsToBind){
@@ -68,8 +64,6 @@ class InputController{
             })
         })
     }
-
-
 
     enableAction(actionName ){
         this.actions[actionName].enabled = true;
@@ -100,7 +94,9 @@ class InputController{
       if(!this.actions[action].enabled){
           return false;
       }
-      return this.activated.includes(action);
+      return this.plugins.reduce((a,plugin)=>{
+          return a|| plugin.checkedAction(action)
+      },false);
     }
 }
 
@@ -112,6 +108,11 @@ class Keyboard{
     enabled = false;
     pressedKeys = [];
 
+    constructor(controller) {
+        this.controller = controller
+        this.isKeyboard()
+        this.attach()
+    }
     keyDownEvent = (e)=>{
         if (!this.enabled && !this.isKeyPressed(e.keyCode)){
             return;
@@ -122,12 +123,10 @@ class Keyboard{
         const action = Object.keys(this.controller.actions).find((key)=>
             this.controller.actions[key].keys.includes(e.keyCode)
         )
-        if (!this.controller.activated.includes(action) && this.controller.activated.length){
-            return;
-        }
         this.pressedKeys.push(e.keyCode);
-        this.controller.activated.push(action);
-        this.controller.triggerEvent(InputController.ACTION_ACTIVATED)
+        if (this.checkedAction(action)){
+            this.controller.triggerEvent(InputController.ACTION_ACTIVATED)
+        }
     }
 
     keyUpEvent = (e)=>{
@@ -138,19 +137,10 @@ class Keyboard{
             this.controller.actions[key].keys.includes(e.keyCode)
         )
         this.pressedKeys = this.pressedKeys.filter((key)=>key !== e.keyCode);
-        let myIndex = this.controller.activated.indexOf(action);
-        if(myIndex !== -1) {
-            this.controller.activated.splice(myIndex,1);
-        }
-        if (!this.controller.activated.includes(action)){
+        if (!this.checkedAction(action)){
             this.controller.triggerEvent(InputController.ACTION_DEACTIVATED);
         }
     };
-    constructor(controller) {
-        this.controller = controller
-        this.isKeyboard()
-        this.attach()
-    }
 
 
     isKeyboard(){
@@ -174,9 +164,17 @@ class Keyboard{
         document.removeEventListener('keyup',this.keyUpEvent);
     }
 
-
+    checkedAction(action){
+        if (!action){
+            return;
+        }
+        return this.pressedKeys.reduce((a,cur)=>{
+            return a || this.controller.actions[action].keys.includes(cur)
+        },false)
+    }
     isKeyPressed(keyCode){
         return this.pressedKeys.includes(keyCode);
     }
 
 }
+
