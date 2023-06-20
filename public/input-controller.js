@@ -142,7 +142,7 @@ class Keyboard{
         if(myIndex !== -1) {
             this.controller.activated.splice(myIndex,1);
         }
-        if (!this.controller.activated.includes(action)){
+        if (!this.controller.activated.includes(action) && !this.controller.activated.length){
             this.controller.triggerEvent(InputController.ACTION_DEACTIVATED);
         }
     };
